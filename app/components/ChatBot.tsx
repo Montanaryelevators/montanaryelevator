@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Message {
   id: number;
@@ -14,148 +15,122 @@ interface Question {
   question: string;
   answer: string;
   category: string;
+  relatedQuestions?: number[];
+  pageLink?: string;
 }
 
 export default function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const [suggestedQuestions, setSuggestedQuestions] = useState<Question[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState<string | null>(null);
+  const [relatedQuestions, setRelatedQuestions] = useState<Question[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const questions: Question[] = [
     {
       id: 1,
       question: "What types of elevator cabins do you offer?",
-      answer: "We offer 7 types of premium elevator cabins: SS Cabin (Stainless Steel), Gold Glass Cabin, Premium Glass Cabin, Luxury Marble Cabin, Wooden Finish Cabin, Black Pearl Cabin, and Champagne Finish Cabin. Each is designed for specific needs and aesthetics.",
-      category: "Products"
+      answer: "We offer 7 premium elevator cabin types:\n\n• SS Cabin - Stainless steel, rust-resistant\n• Gold Glass Cabin - Luxury gold tint\n• Premium Glass Cabin - Transparent design\n• Luxury Marble Cabin - Natural marble\n• Wooden Finish Cabin - Engineered wood\n• Black Pearl Cabin - Sophisticated black finish\n• Champagne Finish Cabin - Soft gold tone\n\nWould you like to see our cabin gallery?",
+      category: "Cabins",
+      relatedQuestions: [2, 3, 4],
+      pageLink: "/pages/liftcabin"
     },
     {
       id: 2,
       question: "What are your elevator door options?",
-      answer: "We provide Automatic Doors, Swing Doors, Center Opening Doors, Big Vision Doors, Sliding Doors, Wood Color Doors, and Collapsible Doors. Each type offers unique features for different applications.",
-      category: "Products"
+      answer: "We provide comprehensive door solutions:\n\n• Automatic Doors - Hands-free operation\n• Swing Doors - Classic design\n• Center Opening Doors - Space-efficient\n• Big Vision Doors - Panoramic views\n• Sliding Doors - Modern design\n• Wood Color Doors - Traditional appeal\n• Collapsible Doors - Security-focused\n\nInterested in viewing our door collection?",
+      category: "Doors",
+      relatedQuestions: [1, 3, 4],
+      pageLink: "/pages/liftdoors"
     },
     {
       id: 3,
       question: "Do you have senior-friendly elevators?",
-      answer: "Yes! Our senior-friendly elevators feature wheelchair accessibility, large high-contrast buttons, voice assistance, emergency call systems, and non-slip flooring for enhanced safety and comfort.",
-      category: "Features"
+      answer: "Yes! Our Senior-Friendly Elevators include:\n\n• Wheelchair accessibility\n• Large high-contrast buttons\n• Voice assistance\n• Emergency call systems\n• Non-slip flooring\n• Slow-close mechanisms\n\nPerfect for retirement homes and accessible housing.",
+      category: "Features",
+      relatedQuestions: [1, 2, 4]
     },
     {
       id: 4,
       question: "What tech features do you offer?",
-      answer: "Our tech-advanced elevators include AI voice control, smartphone app integration, touchless operation, biometric access, smart home integration, and energy-efficient AI optimization.",
-      category: "Features"
+      answer: "Our Tech-Advanced Elevators feature:\n\n• AI Voice Control\n• Smartphone App\n• Touchless Operation\n• Biometric Access\n• Smart Home Integration\n• Energy Optimization\n\nFuture-proof technology for modern buildings.",
+      category: "Features",
+      relatedQuestions: [1, 2, 3]
     },
     {
       id: 5,
       question: "Where are you located?",
-      answer: "Our main branch is at: 10-7-34/1 Rangreej Peta, Rajahmundry, E.G. Dist, A.P. We serve areas including Razole, Palacole, Tadepalligudem, Narsapur, Amalapuram, Bhimavaram, Kakinada, and both E.G & W.G Districts.",
-      category: "Contact"
+      answer: "📍 Main Branch: 10-7-34/1 Rangreej Peta, Rajahmundry, E.G. Dist, A.P\n\nWe serve: Razole, Palacole, Tadepalligudem, Narsapur, Amalapuram, Bhimavaram, Kakinada, and both E.G & W.G Districts.",
+      category: "Contact",
+      relatedQuestions: [6]
     },
     {
       id: 6,
       question: "How can I contact you?",
-      answer: "You can reach us at: Phone: 9000737676, 8500884447 | Email: montanaryelevators@gmail.com | Senior Support: 9000737677. We're available for consultations and support.",
-      category: "Contact"
-    },
-    {
-      id: 7,
-      question: "Do you provide installation services?",
-      answer: "Yes, we provide complete installation services including site assessment, custom design, professional installation, and after-sales support. Our team handles everything from planning to completion.",
-      category: "Services"
-    },
-    {
-      id: 8,
-      question: "What maintenance services do you offer?",
-      answer: "We offer comprehensive maintenance packages including regular inspections, emergency repairs, part replacements, safety checks, and 24/7 technical support to ensure your elevator operates smoothly.",
-      category: "Services"
-    },
-    {
-      id: 9,
-      question: "Are your elevators energy efficient?",
-      answer: "Absolutely! Our elevators feature AI-powered energy optimization that reduces power consumption by up to 40%. We use efficient motors and smart control systems to minimize energy usage.",
-      category: "Features"
-    },
-    {
-      id: 10,
-      question: "What safety features do you include?",
-      answer: "All our elevators include emergency brakes, backup power, emergency call buttons, safety sensors, overload protection, and fire-rated doors for maximum passenger safety.",
-      category: "Features"
-    },
-    {
-      id: 11,
-      question: "Can I see your elevator videos?",
-      answer: "Yes! Visit our Videos page to see demonstrations of home lifts, touch pad models, automatic doors, swing doors, wood color cabins, and motor assembling processes.",
-      category: "Products"
-    },
-    {
-      id: 12,
-      question: "Do you offer custom designs?",
-      answer: "Yes, we specialize in custom elevator solutions. We can customize cabin materials, door styles, control systems, and finishes to match your specific requirements and interior design.",
-      category: "Services"
+      answer: "📞 Phone: 9000737676, 8500884447\n📞 Senior Support: 9000737677\n📧 Email: montanaryelevators@gmail.com\n🕒 Hours: Mon-Sun, 8:00 AM - 8:00 PM",
+      category: "Contact",
+      relatedQuestions: [5]
     }
   ];
 
+  const quickActions = [
+    { icon: "📞", text: "Call Now", action: () => window.open('tel:+919000737676') },
+    { icon: "💬", text: "WhatsApp", action: () => window.open('https://wa.me/919000737676') },
+    { icon: "📧", text: "Email Us", action: () => window.open('mailto:montanaryelevators@gmail.com') },
+    { icon: "📍", text: "Get Directions", action: () => window.open('https://maps.google.com/?q=10-7-34/1+Rangreej+Peta,+Rajahmundry') }
+  ];
+
   useEffect(() => {
-    // Initialize with welcome message
     if (messages.length === 0) {
       setMessages([
         {
           id: 1,
-          text: "Hello! I'm your Montanary Elevators assistant. How can I help you today? You can ask me about our products, services, features, or contact information.",
+          text: "Hello! I'm your Montanary Elevators assistant. How can I help you today?",
           isUser: false,
           timestamp: new Date()
         }
       ]);
-      setSuggestedQuestions(questions.slice(0, 4));
     }
   }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isTyping]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const findBestAnswer = (question: string): string => {
+  const simulateTyping = (duration: number = 1000) => {
+    setIsTyping(true);
+    return new Promise(resolve => {
+      setTimeout(() => {
+        setIsTyping(false);
+        resolve(true);
+      }, duration);
+    });
+  };
+
+  const findBestAnswer = (question: string): { answer: string; category: string; relatedQuestions?: number[]; pageLink?: string } => {
     const lowerQuestion = question.toLowerCase();
     
-    // Exact match
     const exactMatch = questions.find(q => 
       q.question.toLowerCase() === lowerQuestion
     );
-    if (exactMatch) return exactMatch.answer;
+    if (exactMatch) return exactMatch;
 
-    // Keyword matching
     const keywords = {
       'cabin': [1],
       'door': [2],
       'senior': [3],
-      'old': [3],
-      'elderly': [3],
       'tech': [4],
-      'smart': [4],
-      'ai': [4],
       'location': [5],
-      'address': [5],
-      'contact': [6],
-      'phone': [6],
-      'email': [6],
-      'install': [7],
-      'maintenance': [8],
-      'service': [7, 8],
-      'energy': [9],
-      'power': [9],
-      'safety': [10],
-      'secure': [10],
-      'video': [11],
-      'custom': [12],
-      'design': [12]
+      'contact': [6]
     };
 
     let bestMatchId = 0;
@@ -175,17 +150,18 @@ export default function ChatBot() {
 
     if (bestMatchId > 0) {
       const match = questions.find(q => q.id === bestMatchId);
-      if (match) return match.answer;
+      if (match) return match;
     }
 
-    // Default response for unknown questions
-    return "I'm sorry, I don't have specific information about that. You can ask me about our elevator cabins, doors, senior-friendly features, tech features, contact information, services, or safety features. Would you like to know about any of these?";
+    return {
+      answer: "I can help you with information about our elevator cabins, doors, features, and contact details. What would you like to know?",
+      category: "General"
+    };
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputText.trim() === '') return;
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now(),
       text: inputText,
@@ -195,33 +171,72 @@ export default function ChatBot() {
 
     setMessages(prev => [...prev, userMessage]);
     setInputText('');
-
-    // Auto-hide suggestions after user sends a message
     setShowSuggestions(false);
 
-    // Simulate typing delay
-    setTimeout(() => {
-      const answer = findBestAnswer(inputText);
-      const botMessage: Message = {
-        id: Date.now() + 1,
-        text: answer,
-        isUser: false,
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, botMessage]);
-      
-      // Update suggested questions based on context
-      const relevantQuestions = questions.filter(q => 
-        !inputText.toLowerCase().includes(q.question.toLowerCase().split(' ')[0])
-      ).slice(0, 4);
-      setSuggestedQuestions(relevantQuestions);
-    }, 1000);
+    await simulateTyping(1000);
+
+    const { answer, category, relatedQuestions: relatedIds, pageLink } = findBestAnswer(inputText);
+    
+    const botMessage: Message = {
+      id: Date.now() + 1,
+      text: answer,
+      isUser: false,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, botMessage]);
+
+    // Set current category and related questions
+    if (category && category !== "General") {
+      setCurrentCategory(category);
+      if (relatedIds && relatedIds.length > 0) {
+        const related = questions.filter(q => relatedIds.includes(q.id));
+        setRelatedQuestions(related);
+      } else {
+        setRelatedQuestions([]);
+      }
+
+      // Ask if user wants to visit the page
+      if (pageLink && (category === "Cabins" || category === "Doors")) {
+        setTimeout(async () => {
+          await simulateTyping(800);
+          const pageMessage: Message = {
+            id: Date.now() + 2,
+            text: `Would you like to visit our ${category.toLowerCase()} gallery page to see more details and images?`,
+            isUser: false,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, pageMessage]);
+        }, 500);
+      }
+    } else {
+      setCurrentCategory(null);
+      setRelatedQuestions([]);
+    }
   };
 
   const handleQuickQuestion = (question: string) => {
     setInputText(question);
-    setShowSuggestions(false);
+    setTimeout(() => {
+      handleSendMessage();
+    }, 100);
+  };
+
+  const handleQuickAction = (action: () => void) => {
+    action();
+  };
+
+  const handlePageNavigation = (pageLink: string) => {
+    setIsOpen(false);
+    setTimeout(() => {
+      router.push(pageLink);
+    }, 300);
+  };
+
+  const handleBackToMain = () => {
+    setCurrentCategory(null);
+    setRelatedQuestions([]);
+    setShowSuggestions(true);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -239,8 +254,8 @@ export default function ChatBot() {
     });
   };
 
-  const toggleSuggestions = () => {
-    setShowSuggestions(!showSuggestions);
+  const getMainQuestions = () => {
+    return questions.filter(q => !currentCategory || q.category === currentCategory);
   };
 
   return (
@@ -264,44 +279,15 @@ export default function ChatBot() {
           font-size: 28px;
           cursor: pointer;
           box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          transition: all 0.4s ease;
           display: flex;
           align-items: center;
           justify-content: center;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .chatbot-button::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-          opacity: 0;
-          transition: opacity 0.4s ease;
-          border-radius: 50%;
         }
 
         .chatbot-button:hover {
-          transform: scale(1.15) rotate(5deg);
-          box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
-        }
-
-        .chatbot-button:hover::before {
-          opacity: 1;
-        }
-
-        .chatbot-button i {
-          position: relative;
-          z-index: 2;
-          transition: transform 0.3s ease;
-        }
-
-        .chatbot-button:hover i {
           transform: scale(1.1);
+          box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
         }
 
         .chatbot-window {
@@ -309,85 +295,99 @@ export default function ChatBot() {
           bottom: 90px;
           right: 0;
           width: 380px;
-          height: 520px;
+          height: 500px;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           border-radius: 20px;
           box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-          border: 2px solid rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
+          animation: slideUp 0.3s ease;
         }
 
         @keyframes slideUp {
           from {
             opacity: 0;
-            transform: translateY(30px) scale(0.9);
+            transform: translateY(20px);
           }
           to {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
           }
         }
 
         .chatbot-header {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+          background: rgba(255, 255, 255, 0.1);
           color: white;
-          padding: 20px;
+          padding: 15px 20px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          backdrop-filter: blur(10px);
           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .chatbot-title {
           font-weight: 700;
-          font-size: 1.2rem;
+          font-size: 1.1rem;
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 8px;
         }
 
-        .chatbot-title::before {
-          content: '🤖';
-          font-size: 1.4rem;
+        .header-actions {
+          display: flex;
+          gap: 5px;
         }
 
-        .chatbot-close {
+        .header-action {
           background: rgba(255, 255, 255, 0.2);
           border: none;
           color: white;
-          font-size: 1.1rem;
+          font-size: 0.9rem;
           cursor: pointer;
-          padding: 8px;
+          padding: 6px;
           border-radius: 50%;
-          width: 35px;
-          height: 35px;
+          width: 30px;
+          height: 30px;
           display: flex;
           align-items: center;
           justify-content: center;
           transition: all 0.3s ease;
-          backdrop-filter: blur(10px);
         }
 
-        .chatbot-close:hover {
+        .header-action:hover {
           background: rgba(255, 255, 255, 0.3);
-          transform: rotate(90deg);
+          transform: scale(1.1);
+        }
+
+        .back-button {
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          color: white;
+          font-size: 0.8rem;
+          cursor: pointer;
+          padding: 6px 12px;
+          border-radius: 15px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          transition: all 0.3s ease;
+          margin-right: 10px;
+        }
+
+        .back-button:hover {
+          background: rgba(255, 255, 255, 0.3);
         }
 
         .chatbot-messages {
           flex: 1;
-          padding: 20px;
+          padding: 15px;
           overflow-y: auto;
-          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          background: #f8f9fa;
           display: flex;
           flex-direction: column;
         }
 
-        /* Custom scrollbar */
         .chatbot-messages::-webkit-scrollbar {
           width: 6px;
         }
@@ -403,7 +403,7 @@ export default function ChatBot() {
         }
 
         .message {
-          margin-bottom: 20px;
+          margin-bottom: 12px;
           display: flex;
           flex-direction: column;
         }
@@ -418,94 +418,56 @@ export default function ChatBot() {
 
         .message-bubble {
           max-width: 85%;
-          padding: 15px 18px;
-          border-radius: 20px;
-          font-size: 0.92rem;
-          line-height: 1.5;
+          padding: 10px 14px;
+          border-radius: 15px;
+          font-size: 0.85rem;
+          line-height: 1.4;
           word-wrap: break-word;
-          position: relative;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+          white-space: pre-line;
         }
 
         .message-user .message-bubble {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
-          border-bottom-right-radius: 8px;
-          animation: messageSlideInRight 0.3s ease;
+          border-bottom-right-radius: 5px;
         }
 
         .message-bot .message-bubble {
           background: white;
           color: #2d3748;
-          border-bottom-left-radius: 8px;
-          animation: messageSlideInLeft 0.3s ease;
-          border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-
-        @keyframes messageSlideInLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes messageSlideInRight {
-          from {
-            opacity: 0;
-            transform: translateX(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
+          border: 1px solid #e0e0e0;
+          border-bottom-left-radius: 5px;
         }
 
         .message-time {
-          font-size: 0.75rem;
+          font-size: 0.65rem;
           color: #718096;
-          margin-top: 8px;
-          font-weight: 500;
+          margin-top: 4px;
         }
 
-        .suggestions-toggle {
-          padding: 12px 20px;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.8) 100%);
+        .section-header {
+          padding: 10px 15px;
+          background: rgba(255, 255, 255, 0.9);
           border-top: 1px solid rgba(255, 255, 255, 0.3);
-          backdrop-filter: blur(10px);
           display: flex;
           align-items: center;
           justify-content: space-between;
           cursor: pointer;
-          transition: all 0.3s ease;
         }
 
-        .suggestions-toggle:hover {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.9) 100%);
-        }
-
-        .suggestions-title {
-          font-size: 0.85rem;
+        .section-title {
+          font-size: 0.8rem;
           color: #4a5568;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+          font-weight: 600;
           display: flex;
           align-items: center;
-          gap: 8px;
-        }
-
-        .suggestions-title::before {
-          content: '💡';
-          font-size: 1rem;
+          gap: 6px;
         }
 
         .toggle-icon {
           color: #667eea;
-          font-size: 0.9rem;
+          font-size: 0.8rem;
           transition: transform 0.3s ease;
         }
 
@@ -513,61 +475,131 @@ export default function ChatBot() {
           transform: rotate(180deg);
         }
 
-        .suggested-questions {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-          border-top: 1px solid rgba(255, 255, 255, 0.3);
-          backdrop-filter: blur(10px);
-          max-height: ${showSuggestions ? '150px' : '0'};
+        .hide-icon {
+          color: #718096;
+          font-size: 0.8rem;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 50%;
+          transition: all 0.3s ease;
+        }
+
+        .hide-icon:hover {
+          background: rgba(0, 0, 0, 0.1);
+          color: #4a5568;
+        }
+
+        .quick-actions {
+          background: rgba(255, 255, 255, 0.95);
+          max-height: ${showQuickActions ? '110px' : '0'};
           overflow: hidden;
           transition: max-height 0.3s ease;
         }
 
-        .question-chips {
-          padding: 15px 20px;
+        .action-buttons {
+          padding: 12px 15px;
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
+          gap: 6px;
         }
 
-        .question-chip {
+        .action-button {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           border: none;
-          border-radius: 20px;
-          padding: 8px 14px;
-          font-size: 0.78rem;
+          border-radius: 18px;
+          padding: 6px 12px;
+          font-size: 0.75rem;
           cursor: pointer;
           transition: all 0.3s ease;
           color: white;
           font-weight: 500;
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
           flex: 1;
-          min-width: calc(50% - 8px);
+          min-width: calc(50% - 6px);
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+        }
+
+        .action-button:hover {
+          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+          transform: translateY(-1px);
+        }
+
+        .suggested-questions {
+          background: rgba(255, 255, 255, 0.95);
+          max-height: ${showSuggestions ? '140px' : '0'};
+          overflow: hidden;
+          transition: max-height 0.3s ease;
+        }
+
+        .question-buttons {
+          padding: 12px 15px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .question-button {
+          background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+          border: none;
+          border-radius: 18px;
+          padding: 6px 12px;
+          font-size: 0.75rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          color: white;
+          font-weight: 500;
+          flex: 1;
+          min-width: calc(50% - 6px);
           text-align: center;
           line-height: 1.3;
         }
 
-        .question-chip:hover {
+        .question-button:hover {
           background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+          transform: translateY(-1px);
+        }
+
+        .page-button {
+          background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+          border: none;
+          border-radius: 18px;
+          padding: 8px 16px;
+          font-size: 0.75rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          color: white;
+          font-weight: 600;
+          margin: 8px 15px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        }
+
+        .page-button:hover {
+          background: linear-gradient(135deg, #ff8e8e 0%, #ff7f50 100%);
+          transform: translateY(-1px);
         }
 
         .chatbot-input {
-          padding: 18px 20px;
+          padding: 12px 15px;
           background: white;
           border-top: 1px solid #e2e8f0;
           display: flex;
-          gap: 12px;
+          gap: 8px;
           align-items: center;
         }
 
         .chatbot-input input {
           flex: 1;
-          padding: 14px 18px;
-          border: 2px solid #e2e8f0;
-          border-radius: 25px;
+          padding: 10px 12px;
+          border: 1px solid #e0e0e0;
+          border-radius: 20px;
           outline: none;
-          font-size: 0.92rem;
+          font-size: 0.85rem;
           transition: all 0.3s ease;
           background: #f8fafc;
         }
@@ -575,53 +607,49 @@ export default function ChatBot() {
         .chatbot-input input:focus {
           border-color: #667eea;
           background: white;
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .send-button {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           border: none;
           border-radius: 50%;
-          width: 45px;
-          height: 45px;
+          width: 36px;
+          height: 36px;
           color: white;
           cursor: pointer;
           transition: all 0.3s ease;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+          font-size: 0.9rem;
         }
 
         .send-button:hover {
           background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-          transform: scale(1.1) rotate(15deg);
-          box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+          transform: scale(1.05);
         }
 
         .send-button:disabled {
           background: #cbd5e0;
-          transform: none;
-          box-shadow: none;
           cursor: not-allowed;
+          transform: none;
         }
 
         .typing-indicator {
           display: flex;
           align-items: center;
-          gap: 6px;
-          padding: 15px 18px;
+          gap: 4px;
+          padding: 10px 14px;
           background: white;
-          border-radius: 20px;
-          border-bottom-left-radius: 8px;
-          max-width: 90px;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          border-radius: 15px;
+          border-bottom-left-radius: 5px;
+          max-width: 70px;
         }
 
         .typing-dot {
-          width: 10px;
-          height: 10px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          width: 6px;
+          height: 6px;
+          background: #999;
           border-radius: 50%;
           animation: typing 1.4s infinite;
         }
@@ -639,28 +667,10 @@ export default function ChatBot() {
             transform: translateY(0);
           }
           30% {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
           }
         }
 
-        /* Pulse animation for chatbot button */
-        @keyframes pulse-glow {
-          0% {
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-          }
-          50% {
-            box-shadow: 0 8px 35px rgba(102, 126, 234, 0.8);
-          }
-          100% {
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-          }
-        }
-
-        .chatbot-button {
-          animation: pulse-glow 2s infinite;
-        }
-
-        /* Responsive Design */
         @media (max-width: 768px) {
           .chatbot-container {
             bottom: 20px;
@@ -669,14 +679,14 @@ export default function ChatBot() {
 
           .chatbot-window {
             width: 340px;
-            height: 480px;
+            height: 450px;
             right: -10px;
           }
 
           .chatbot-button {
-            width: 65px;
-            height: 65px;
-            font-size: 26px;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
           }
         }
 
@@ -688,19 +698,13 @@ export default function ChatBot() {
 
           .chatbot-window {
             width: 320px;
-            height: 450px;
+            height: 400px;
             right: -15px;
           }
 
-          .chatbot-button {
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-          }
-
-          .question-chip {
+          .action-button, .question-button {
             min-width: 100%;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
           }
         }
       `}</style>
@@ -721,15 +725,27 @@ export default function ChatBot() {
         <div className="chatbot-window">
           {/* Header */}
           <div className="chatbot-header">
-            <div className="chatbot-title">
-              Elevator Assistant
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {currentCategory && (
+                <button className="back-button" onClick={handleBackToMain}>
+                  <i className="fas fa-arrow-left"></i>
+                  Back
+                </button>
+              )}
+              <div className="chatbot-title">
+                <i className="fas fa-robot"></i>
+                {currentCategory ? `${currentCategory} Questions` : 'Elevator Assistant'}
+              </div>
             </div>
-            <button 
-              className="chatbot-close"
-              onClick={() => setIsOpen(false)}
-            >
-              <i className="fas fa-times"></i>
-            </button>
+            <div className="header-actions">
+              <button 
+                className="header-action"
+                onClick={() => setIsOpen(false)}
+                title="Close"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
           </div>
 
           {/* Messages */}
@@ -747,7 +763,7 @@ export default function ChatBot() {
                 </div>
               </div>
             ))}
-            {messages[messages.length - 1]?.isUser && (
+            {isTyping && (
               <div className="message message-bot">
                 <div className="typing-indicator">
                   <div className="typing-dot"></div>
@@ -759,34 +775,91 @@ export default function ChatBot() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Suggested Questions Toggle */}
-          {suggestedQuestions.length > 0 && (
-            <>
-              <div className="suggestions-toggle" onClick={toggleSuggestions}>
-                <div className="suggestions-title">
-                  Quick Questions
-                </div>
-                <div className={`toggle-icon ${showSuggestions ? 'open' : ''}`}>
-                  <i className="fas fa-chevron-down"></i>
-                </div>
-              </div>
-
-              {/* Suggested Questions (Collapsible) */}
-              <div className="suggested-questions">
-                <div className="question-chips">
-                  {suggestedQuestions.map((question) => (
-                    <button
-                      key={question.id}
-                      className="question-chip"
-                      onClick={() => handleQuickQuestion(question.question)}
-                    >
-                      {question.question}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
+          {/* Page Navigation Button */}
+          {currentCategory && (currentCategory === "Cabins" || currentCategory === "Doors") && (
+            <button 
+              className="page-button"
+              onClick={() => handlePageNavigation(currentCategory === "Cabins" ? "/pages/liftcabin" : "/pages/liftdoors")}
+            >
+              <i className="fas fa-external-link-alt"></i>
+              Visit {currentCategory} Gallery Page
+            </button>
           )}
+
+          {/* Quick Actions Section */}
+          {/* <div className="section-header" onClick={() => setShowQuickActions(!showQuickActions)}>
+            <div className="section-title">
+              <i className="fas fa-bolt"></i>
+              Quick Actions
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="toggle-icon" style={{ transform: showQuickActions ? 'rotate(180deg)' : 'none' }}>
+                <i className="fas fa-chevron-down"></i>
+              </span>
+              <span 
+                className="hide-icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowQuickActions(false);
+                }}
+                title="Hide section"
+              >
+                <i className="fas fa-eye-slash"></i>
+              </span>
+            </div>
+          </div> */}
+
+          {/* <div className="quick-actions">
+            <div className="action-buttons">
+              {quickActions.map((action, index) => (
+                <button
+                  key={index}
+                  className="action-button"
+                  onClick={() => handleQuickAction(action.action)}
+                >
+                  <span>{action.icon}</span>
+                  <span>{action.text}</span>
+                </button>
+              ))}
+            </div>
+          </div> */}
+
+          {/* Suggested Questions Section */}
+          <div className="section-header" onClick={() => setShowSuggestions(!showSuggestions)}>
+            <div className="section-title">
+              <i className="fas fa-lightbulb"></i>
+              {currentCategory ? 'Related Questions' : 'Common Questions'}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="toggle-icon" style={{ transform: showSuggestions ? 'rotate(180deg)' : 'none' }}>
+                <i className="fas fa-chevron-down"></i>
+              </span>
+              <span 
+                className="hide-icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSuggestions(false);
+                }}
+                title="Hide section"
+              >
+                <i className="fas fa-eye-slash"></i>
+              </span>
+            </div>
+          </div>
+
+          <div className="suggested-questions">
+            <div className="question-buttons">
+              {(currentCategory && relatedQuestions.length > 0 ? relatedQuestions : getMainQuestions()).map((question) => (
+                <button
+                  key={question.id}
+                  className="question-button"
+                  onClick={() => handleQuickQuestion(question.question)}
+                >
+                  {question.question}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Input Area */}
           <div className="chatbot-input">
@@ -795,13 +868,13 @@ export default function ChatBot() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask about elevators..."
+              placeholder="Type your message..."
               maxLength={500}
             />
             <button 
               className="send-button"
               onClick={handleSendMessage}
-              disabled={!inputText.trim()}
+              disabled={!inputText.trim() || isTyping}
             >
               <i className="fas fa-paper-plane"></i>
             </button>
