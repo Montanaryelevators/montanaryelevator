@@ -78,6 +78,26 @@ const MobileAIElevatorLoading = () => {
           <div className="version">v2.0</div>
         </div>
         
+        {/* Trust Badge - ADDED THIS SECTION */}
+        <div className="mobile-trust-badge">
+          <div className="trust-content">
+            <div className="trust-icon">🏆</div>
+            <div className="trust-text">
+              <div className="trust-title">PROVEN TRACK RECORD</div>
+              <div className="trust-stats">
+                <span className="trust-stat">
+                  <span className="stat-icon">📅</span>
+                  2 Years Experience
+                </span>
+                <span className="trust-stat">
+                  <span className="stat-icon">😊</span>
+                  20+ Happy Clients
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         {/* Elevator Visualization */}
         <div className="mobile-elevator">
           {/* Building */}
@@ -116,6 +136,12 @@ const MobileAIElevatorLoading = () => {
           {/* Progress Ring */}
           <div className="progress-ring">
             <svg viewBox="0 0 100 100" className="ring-svg">
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#FF6B35" />
+                  <stop offset="100%" stopColor="#4A90E2" />
+                </linearGradient>
+              </defs>
               <circle 
                 cx="50" 
                 cy="50" 
@@ -208,20 +234,22 @@ const MobileAIElevatorLoading = () => {
         
         {/* Bottom Info */}
         <div className="mobile-info">
-          <div className="stats">
-            <div className="stat">
-              <div className="stat-value">0.{progress.toFixed(1)}s</div>
-              <div className="stat-label">Response</div>
+          {/* Experience Stats - ADDED THIS SECTION */}
+          <div className="experience-stats">
+            <div className="exp-stat">
+              <div className="exp-value">2 Years</div>
+              <div className="exp-label">Experience</div>
             </div>
-            <div className="stat">
-              <div className="stat-value">99.9%</div>
-              <div className="stat-label">Safety</div>
+            <div className="exp-stat">
+              <div className="exp-value">20+</div>
+              <div className="exp-label">Happy Clients</div>
             </div>
-            <div className="stat">
-              <div className="stat-value">AI</div>
-              <div className="stat-label">Powered</div>
+            <div className="exp-stat">
+              <div className="exp-value">99.9%</div>
+              <div className="exp-label">Satisfaction</div>
             </div>
           </div>
+          
           <div className="loading-text">
             Elevating your experience...
           </div>
