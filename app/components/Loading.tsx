@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-
 const AIElevatorLoading = () => {
   const [progress, setProgress] = useState(0);
   const [currentFloor, setCurrentFloor] = useState('G');
@@ -246,6 +245,28 @@ const AIElevatorLoading = () => {
                 </div>
               </div>
               
+              {/* Trust Badge - ADDED THIS SECTION */}
+              <div className="trust-badge">
+                <div className="badge-content">
+                  <div className="badge-icon">
+                    <i className="fas fa-trophy"></i>
+                  </div>
+                  <div className="badge-text">
+                    <div className="badge-title">TRUSTED EXPERIENCE</div>
+                    <div className="badge-stats">
+                      <span className="stat-item">
+                        <i className="fas fa-calendar-check"></i>
+                        2 Years Completed
+                      </span>
+                      <span className="stat-item">
+                        <i className="fas fa-smile"></i>
+                        20+ Happy Clients
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               {/* Progress Indicator */}
               <div className="vertical-progress">
                 <div className="progress-track">
@@ -401,6 +422,29 @@ const AIElevatorLoading = () => {
               <h1>ELEVATING THE FUTURE</h1>
               <p>Experience Next-Generation AI-Powered Vertical Transportation</p>
             </div>
+            
+            {/* Experience Stats - ADDED THIS SECTION */}
+            <div className="experience-stats">
+              <div className="experience-card">
+                <div className="exp-icon">
+                  <i className="fas fa-history"></i>
+                </div>
+                <div className="exp-details">
+                  <div className="exp-value">2 Years</div>
+                  <div className="exp-label">Industry Experience</div>
+                </div>
+              </div>
+              <div className="experience-card">
+                <div className="exp-icon">
+                  <i className="fas fa-users"></i>
+                </div>
+                <div className="exp-details">
+                  <div className="exp-value">20+</div>
+                  <div className="exp-label">Happy Clients</div>
+                </div>
+              </div>
+            </div>
+            
             <div className="company-info">
               <div className="logo">
                 <i className="fas fa-mountain"></i>
